@@ -1,0 +1,45 @@
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+/* ===== LAYOUT ===== */
+.dashboard-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 260px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: #fff;
+  z-index: 1200;
+}
+
+/* ===== ÁREA PRINCIPAL ===== */
+.main-area {
+  margin-left: 260px;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 260px);
+  height: 100vh;
+}
+
+/* ===== TOPBAR ===== */
+.topbar {
+  height: 72px;
+  flex-shrink: 0;          /* 👈 CLAVE */
+}
+
+/* ===== CONTENIDO CON SCROLL ===== */
+.content-area {
+  flex: 1;
+  overflow-y: auto;        /* 👈 SCROLL AQUÍ */
+  background: #f4f5f7;
+  padding: 24px;
+}
