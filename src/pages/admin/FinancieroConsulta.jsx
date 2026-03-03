@@ -233,6 +233,7 @@ const hasta = Math.min(
                     {[
                       "Fecha",
                       "Cédula",
+                      "Nombre",
                       "Guía",
                       "Estado",
                       "Método",
@@ -253,6 +254,7 @@ const hasta = Math.min(
                     <TableRow key={r.id} hover>
                       <TableCell>{r.fecha_pago}</TableCell>
                       <TableCell>{r.cedula}</TableCell>
+                      <TableCell>{r.nombre_conductor}</TableCell>
                       <TableCell>{r.numero_guia}</TableCell>
                       <TableCell>
                         <Chip

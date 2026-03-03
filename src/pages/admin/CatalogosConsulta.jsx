@@ -57,6 +57,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import CloseIcon from "@mui/icons-material/Close";
 import axios from "axios";
+import Autocomplete from "@mui/material/Autocomplete";
 
 // ================= FORMATTERS =================
 const formatearPlaca = (valor) => {
@@ -103,7 +104,24 @@ const [confirmarEliminar, setConfirmarEliminar] = useState({
   open: false,
   id: null,
 });
+const [usuarios, setUsuarios] = useState([]);
+const cargarUsuarios = async () => {
+  try {
+    const res = await axios.get("https://nonpatriotic-involucral-marylyn.ngrok-free.dev/api/usuarios");
+     const usuariosArray = Array.isArray(res.data)
+      ? res.data
+      : res.data.data || [];
 
+    setUsuarios(usuariosArray);
+
+  } catch (error) {
+    console.error("Error cargando usuarios:", error);
+    setUsuarios([]);
+  }
+};
+useEffect(() => {
+  cargarUsuarios();
+}, []);
 
 const solicitarEliminar = (id) => {
   setConfirmarEliminar({ open: true, id });
@@ -233,18 +251,21 @@ const ejecutarEliminacion = async () => {
     JSON.stringify(d).toLowerCase().includes(busqueda.toLowerCase()),
   );
 
-  function FormVehiculo({ onSaved, onAlert }) {
-    const [form, setForm] = useState({ placa: "", modelo: "" });
+  function FormVehiculo({ onSaved, onAlert, usuarios  }) {
+    const [form, setForm] = useState({ placa: "", marca: "", propetario: "" });
+    const usuariosFiltrados = usuarios.filter(
+  (u) => u.rol === "CONDUCTOR" || u.rol === "PROPETARIO"
+);
 
     const guardar = async () => {
       let payload = null; 
 
       try {
-        if (!form.placa || !form.modelo) {
+        if (!form.placa || !form.marca) {
           onAlert(
             "error",
             "Datos incompletos",
-            "Placa y modelo son obligatorios.",
+            "Placa y marca son obligatorios.",
           );
           return;
         }
@@ -275,7 +296,7 @@ const ejecutarEliminacion = async () => {
           "El vehículo fue registrado correctamente.",
         );
 
-        setForm({ placa: "", modelo: "" });
+        setForm({ placa: "", marca: "", propetario: "" });
         onSaved();
       } catch (error) {
         console.error("ERROR VEHICULO:", error.response?.data || error);
@@ -300,11 +321,51 @@ console.error("ERROR VEHICULO:", error.response?.data || error);
           fullWidth
         />
         <TextField
-          label="Modelo"
-          value={form.modelo}
-          onChange={(e) => setForm({ ...form, modelo: e.target.value })}
+          label="Marca"
+          value={form.marca}
+          onChange={(e) => setForm({ ...form, marca: e.target.value })}
           fullWidth
         />
+       <Autocomplete
+  options={usuariosFiltrados}
+  getOptionLabel={(option) => option.nombre}
+  isOptionEqualToValue={(option, value) => option.id === value.id}
+  filterOptions={(options, state) => {
+    const input = state.inputValue.toLowerCase();
+console.log("USUARIOS ANTES DE FILTRAR:", usuarios);
+    const filtered = options.filter(
+      (o) =>
+        o.nombre.toLowerCase().includes(input)
+      
+    );
+
+    // Si no escribe nada → mostrar solo 2
+    if (!state.inputValue) {
+      return filtered.slice(0, 2);
+    }
+
+    return filtered;
+  }}
+  onChange={(event, newValue) => {
+    setForm({
+      ...form,
+      propietario: newValue ? newValue.nombre : ""
+    });
+  }}
+  renderOption={(props, option) => (
+    <li {...props}>
+      <strong>{option.nombre}</strong> — {option.rol}
+    </li>
+  )}
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      label="Propetario"
+      placeholder="Buscar por nombre..."
+      fullWidth
+    />
+  )}
+/>
         <Button
           variant="contained"
           onClick={guardar}
@@ -715,7 +776,7 @@ console.error("ERROR VEHICULO:", error.response?.data || error);
             </Typography>
 
             {tipo === "vehiculos" && (
-              <FormVehiculo onSaved={cargarData} onAlert={mostrarAlerta} />
+              <FormVehiculo onSaved={cargarData} onAlert={mostrarAlerta}  usuarios={usuarios}/>
             )}
 
             {tipo === "clientes" && (

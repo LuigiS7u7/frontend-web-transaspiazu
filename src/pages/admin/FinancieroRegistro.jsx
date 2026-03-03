@@ -47,8 +47,6 @@ import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 
 export default function FinancieroRegistro() {
 
- 
-
   const [form, setForm] = useState({
     cedula: "",
     numero_guia: "",
@@ -60,10 +58,17 @@ export default function FinancieroRegistro() {
     foto_pago: null,
   });
   const [preview, setPreview] = useState(null);
- const esPendiente = form.estado_pago === "PENDIENTE";
+const esPagado = form.estado_pago === "PAGADO";
+
 const esEfectivo = form.metodo_pago === "EFECTIVO";
-const requiereComprobante =
-  form.estado_pago === "PAGADO" && !esEfectivo;
+const esTransferencia = form.metodo_pago === "TRANSFERENCIA";
+const esCheque = form.metodo_pago === "CHEQUE";
+
+// Solo cuando está PAGADO se puede subir foto
+const requiereFoto = esPagado;
+
+// Solo cuando está PAGADO y no es efectivo requiere número
+const requiereNumero = esPagado && (esTransferencia || esCheque);
 
   const filter = createFilterOptions();
 
@@ -85,9 +90,32 @@ const requiereComprobante =
   const cerrarAlerta = () => {
     setModalAlert({ ...modalAlert, open: false });
   };
-  const handleChange = (campo, valor) => {
-    setForm({ ...form, [campo]: valor });
-  };
+ const handleChange = (campo, valor) => {
+  setForm((prev) => ({
+    ...prev,
+    [campo]: valor,
+  }));
+};
+const [guias, setGuias] = useState([]);
+const [guiaSel, setGuiaSel] = useState(null);
+useEffect(() => {
+  if (form.estado_pago === "PENDIENTE") {
+    setForm((prev) => ({
+      ...prev,
+      numero_metodo_pago: "",
+      foto_pago: null,
+    }));
+    setPreview(null);
+  }
+
+  if (form.metodo_pago === "EFECTIVO") {
+    setForm((prev) => ({
+      ...prev,
+      numero_metodo_pago: "",
+    }));
+  }
+}, [form.estado_pago, form.metodo_pago]);
+
 
   /* ================= CARGAR CONDUCTORES ================= */
   useEffect(() => {
@@ -100,11 +128,15 @@ const requiereComprobante =
 
   const guardarRegistro = async () => {
     try {
+      console.log("FORM COMPLETO:", form);
+console.log("fecha_pago:", form.fecha_pago);
+console.log("precio:", form.precio);
       if (
         !form.cedula ||
         !form.numero_guia ||
-        !form.fecha_pago ||
-        !form.precio
+        !form.fecha_pago ||        
+         form.precio === "" || form.precio === null
+       
       ) {
         mostrarAlerta(
           "error",
@@ -113,16 +145,26 @@ const requiereComprobante =
         );
         return;
       }
-      if (form.estado_pago === "PAGADO" && form.metodo_pago !== "EFECTIVO") {
-  if (!form.numero_metodo_pago || !form.foto_pago) {
+if (esPagado) {
+  if (!form.foto_pago) {
     mostrarAlerta(
       "error",
-      "Datos incompletos",
-      "Debe ingresar número y comprobante de pago."
+      "Comprobante requerido",
+      "Debe subir el comprobante de pago."
+    );
+    return;
+  }
+
+  if (requiereNumero && !form.numero_metodo_pago) {
+    mostrarAlerta(
+      "error",
+      "Número requerido",
+      "Debe ingresar el número del método de pago."
     );
     return;
   }
 }
+
 
 
       const formData = new FormData();
@@ -227,9 +269,16 @@ const requiereComprobante =
 
   return filtered;
                   }}
-                  onChange={(e, v) => {
+                  onChange={async (e, v) => {
                     setConductorSel(v);
                     handleChange("cedula", v?.cedula || "");
+                     if (v?.cedula) {
+    const res = await fetch(`http://localhost:3000/api/bitacoras/guias/${v.cedula}`);
+    const data = await res.json();
+    setGuias(data);
+  } else {
+    setGuias([]);
+  }
                   }}
                   noOptionsText={
                     cedulaInput
@@ -258,20 +307,35 @@ const requiereComprobante =
                   )}
                 />
 
-                {/* NÚMERO DE GUÍA */}
-                <TextField
-                  label="Número de guía"
-                  value={form.numero_guia}
-                  onChange={(e) => handleChange("numero_guia", e.target.value)}
-                  fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <ReceiptLong sx={{ color: "#6FA3A8" }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+<Autocomplete
+  options={guias}
+  value={guiaSel}
+  getOptionLabel={(option) => option.numero_guia}
+  isOptionEqualToValue={(option, value) =>
+    option.numero_guia === value.numero_guia
+  }
+  onChange={(e, v) => {
+    setGuiaSel(v);
+    handleChange("numero_guia", v?.numero_guia || "");
+    handleChange("precio", v?.precio_viaje ?? "");
+  }}
+  renderInput={(params) => (
+ 
+          <TextField
+                      {...params}
+                      label="Número de guía"
+                      fullWidth
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Badge sx={{ color: "#6FA3A8" }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+  )}
+/>
 
                 {/* ESTADO DE PAGO */}
                 <TextField
@@ -323,7 +387,7 @@ const requiereComprobante =
                     handleChange("numero_metodo_pago", e.target.value)
                   }
                   fullWidth
-                  disabled={!requiereComprobante}
+                  disabled={!requiereNumero}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -356,7 +420,7 @@ const requiereComprobante =
 
 
                {/* ===== COMPROBANTE DE PAGO ===== */}
-{requiereComprobante ? (
+{requiereFoto  ? (
   !form.foto_pago ? (
     <Box
       component="label"
@@ -461,7 +525,7 @@ const requiereComprobante =
     }}
   >
     <Typography variant="caption">
-      No se requiere comprobante para este estado / método de pago
+      El comprobante se habilita únicamente cuando el estado sea PAGADO
     </Typography>
   </Box>
 )}
@@ -473,8 +537,8 @@ const requiereComprobante =
                   label="Valor a pagar"
                   type="number"
                   value={form.precio}
-                  onChange={(e) => handleChange("precio", e.target.value)}
                   fullWidth
+                   disabled
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">

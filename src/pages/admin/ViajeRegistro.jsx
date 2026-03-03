@@ -138,7 +138,7 @@ export default function ViajeRegistro() {
   const [openRuta, setOpenRuta] = useState(false);
 
   /* ================= FORM MODALES ================= */
-  const [nuevoVehiculo, setNuevoVehiculo] = useState({ placa: "", modelo: "" });
+  const [nuevoVehiculo, setNuevoVehiculo] = useState({ placa: "", marca: "", propietario: "" });
   const [nuevoCliente, setNuevoCliente] = useState({
     nombre: "",
     telefono: "",
@@ -181,6 +181,8 @@ export default function ViajeRegistro() {
     };
     cargar();
   }, []);
+
+  
 
   /* ================= GUARDAR VIAJE ================= */
   const guardarViaje = async () => {
@@ -252,7 +254,7 @@ export default function ViajeRegistro() {
     setForm({ ...form, vehiculo_id: res.data.id });
 
     setOpenVehiculo(false);
-    setNuevoVehiculo({ placa: "", modelo: "" });
+    setNuevoVehiculo({ placa: "", marca: "", propietario: "" });
   };
 
   const crearClienteModal = async () => {
@@ -767,13 +769,24 @@ const crearRutaModal = async () => {
           />
 
           <TextField
-            label="Modelo"
+            label="Marca"
             fullWidth
-            value={nuevoVehiculo.modelo}
+            value={nuevoVehiculo.marca}
             onChange={(e) =>
               setNuevoVehiculo({
                 ...nuevoVehiculo,
-                modelo: e.target.value,
+                marca: e.target.value,
+              })
+            }
+          />
+            <TextField
+            label="Nombre delPropietario"
+            fullWidth
+            value={nuevoVehiculo.propietario}
+            onChange={(e) =>
+              setNuevoVehiculo({
+                ...nuevoVehiculo,
+                propietario: e.target.value,
               })
             }
           />

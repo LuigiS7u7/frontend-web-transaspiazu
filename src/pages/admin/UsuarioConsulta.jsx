@@ -436,8 +436,9 @@ const hasta = Math.min(
                 value={usuarioEdit.rol}
                 onChange={handleChange}
               >
-                <MenuItem value="ADMIN">Administrador</MenuItem>
+                <MenuItem value="ADMINISTRADOR">Administrador</MenuItem>
                 <MenuItem value="CONDUCTOR">Conductor</MenuItem>
+                <MenuItem value="PROPETARIO">Propetario</MenuItem>
               </TextField>
             </Box>
           )}

@@ -192,6 +192,7 @@ export default function UsuarioRegistro() {
               >
                 <MenuItem value="Administrador">Administrador</MenuItem>
                 <MenuItem value="Conductor">Conductor</MenuItem>
+                <MenuItem value="Propetario">Propetario</MenuItem>
               </TextField>
 
               {/* ===== BOTÓN ===== */}

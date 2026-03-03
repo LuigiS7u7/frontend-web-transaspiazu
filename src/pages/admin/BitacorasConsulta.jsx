@@ -51,7 +51,7 @@ const solicitarEliminar = (id) => {
 
 const ejecutarEliminacion = async () => {
   try {
-    await eliminarUsuario(confirmarEliminar.id);
+    await eliminarBitacora(confirmarEliminar.id);
     cargar();
     setConfirmarEliminar({ open: false, id: null });
     mostrarAlerta("success", "Bitacora Eliminada", "El registro ha sido removido correctamente.");
@@ -128,7 +128,7 @@ const ejecutarEliminacion = async () => {
               justifyContent="flex-end"
             >
               <TextField
-                label="Buscar por cédula"
+                label="Buscar por número de guía"
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 size="small"
@@ -162,9 +162,11 @@ const ejecutarEliminacion = async () => {
                 <TableHead>
                   <TableRow sx={{ backgroundColor: "#E8F3F1" }}>
                     {[
-                      "Conductor",
+                      "Cédula",
+                      "Nombre",
                       "N° Guía",
                       "Ruta",
+                      "Precio",
                       "Fecha llegada",
                       "Hora llegada",
                       "Fecha salida",
@@ -189,10 +191,15 @@ const ejecutarEliminacion = async () => {
                   ) : (
                     bitacorasFiltradas.map((b) => (
                       <TableRow key={b.id} hover>
-                        <TableCell>{b.conductor}</TableCell>
-                        <TableCell>{b.numero_guia}</TableCell>
+                         <TableCell>{b.cedula_conductor}</TableCell>
+                          <TableCell>{b.nombre_conductor}</TableCell>
+                         <TableCell>{b.numero_guia}</TableCell>
+                          <TableCell>{b.ruta}</TableCell>
 
-                        <TableCell>{b.ruta}</TableCell>
+                        <TableCell>
+    ${b.precio_viaje ? Number(b.precio_viaje).toFixed(2) : "0.00"}
+                        </TableCell>
+
 
                         <TableCell>{b.fecha_llegada || "-"}</TableCell>
                         <TableCell>{b.hora_llegada || "-"}</TableCell>
